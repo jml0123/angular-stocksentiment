@@ -1,13 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { FinnHub } from '../api/FinnHub';
+import { AlphaVantage } from '../api/AlphaVantage';
 import { map } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable()
 export class StocksService {
-  private stock = {}
+  stock: object = {};
+  private stockSub = new BehaviorSubject<object>(this.stock);
+  currentStock = this.stockSub.asObservable();
 
-  public http: HttpClient
+  private charts = [];
+
+  private http: HttpClient
 
   constructor(http: HttpClient) {
     this.http = http
@@ -17,19 +22,34 @@ export class StocksService {
     console.log("Fetching " + company)
     const d = new Date();
     const lastYr = new Date(d.getFullYear() - 1);
-    const finnHubQuery = `https://finnhub.io/api/v1/stock/candle?symbol=${company}&resolution=1&from=${Math.round(lastYr.getTime()/1000)}&to=${Math.round(d.getTime()/1000)}&token=${FinnHub.API_KEY}`
-    console.log(finnHubQuery);
-    this.http.get<Response>(finnHubQuery)
+    const query = ``
+    console.log(query);
+    this.http.get<Response>(query)
     .pipe(map((res: any) => {
         console.log(res);
         //return res;
       }))
   }
   getQuote(company) {
-    const finnHubQuery = `https://finnhub.io/api/v1/quote?symbol=${company}&token=${FinnHub.API_KEY}`
-    console.log(finnHubQuery);
-    this.http.get<Response>(finnHubQuery)
-      .subscribe(data => console.log(data))
-        //return res;
+    const query = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${company}&interval=5min&apikey=${AlphaVantage.API_KEY}`
+    console.log(query);
+    this.http.get<Response>(query).subscribe(data => {
+      this.stockSub.next(data)
+    })
+
   }
+
+  getCurrentStock() {
+    return this.currentStock;
+  }
+/*
+  setStockData(data) {
+    this.stock = data;
+  }
+
+  getData() {
+    console.log(this.stock)
+    return this.stock;
+  }
+  */
 }

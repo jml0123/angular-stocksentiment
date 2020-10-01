@@ -7,14 +7,16 @@ import { GraphsComponent } from '../graphs/graphs.component';
 import { SelectorComponent } from '../selector/selector.component';
 import { SearchComponent } from '../search/search.component';
 import { FormsModule } from '@angular/forms';
-
+import { ChartsModule } from 'ng2-charts';
 
 @NgModule({
   imports: [
     CommonModule,
     NzButtonModule,
     NzFormModule,
-    FormsModule
+    FormsModule,
+    ChartsModule
+
   ],
   declarations: [
     DashboardComponent,
@@ -25,9 +27,11 @@ import { FormsModule } from '@angular/forms';
   exports: [
     DashboardComponent,
     SearchComponent,
+    GraphsComponent,
     NzFormModule,
     NzButtonModule,
-    FormsModule
+    FormsModule,
+    ChartsModule
   ]
 })
 export class DashboardModule { }

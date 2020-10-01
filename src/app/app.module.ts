@@ -24,7 +24,7 @@ registerLocaleData(en);
     FormsModule,
     HttpClientModule,
     BrowserAnimationsModule,
-    DashboardModule
+    DashboardModule,
 
   ],
   providers: [StocksService, { provide: NZ_I18N, useValue: en_US }],
