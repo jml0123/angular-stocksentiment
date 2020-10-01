@@ -1,0 +1,10 @@
+<h1>Search for stocks</h1>
+<form (ngSubmit) = "onSubmit(company)" #company='ngForm'>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="6" nzFor="search">Search</nz-form-label>
+    <nz-form-control [nzSpan]="14">
+      <input nz-input name="ticker" [(ngModel)]="ticker"  type="text" id="ticker" required>
+    </nz-form-control>
+  </nz-form-item>
+  <button nz-button nzType="secondary" type="submit">Search</button>
+</form>
