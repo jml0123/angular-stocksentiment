@@ -9,9 +9,7 @@ import { StocksService } from '../stocks.service'
   styleUrls: ['./graphs.component.css']
 })
 export class GraphsComponent implements OnInit {
-  public lineChartData: ChartDataSets[] = [
-    { data: [65, 59, 80, 81, 56, 55, 40], label: 'Series A' },
-  ];
+  public lineChartData: ChartDataSets[] = [];
   public lineChartLabels: Label[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
   public lineChartOptions: (ChartOptions & { annotation: any }) = {
     responsive: true,
@@ -90,9 +88,29 @@ export class GraphsComponent implements OnInit {
    }
 
   ngOnInit(): void {
+    let chartData = [];
     this.sService.getCurrentStock().subscribe(data =>{
-      console.log(data)
-    })
+      const priceData =  data['Time Series (5min)']
+      if(!priceData) {
+        return
+      }
+        else {
+          const prices = Object.entries(priceData)
+          console.log(prices)
+          prices.map(p => {
+            const intPrice = parseFloat(p[1]['1. open'])
+            chartData.push(intPrice)
+          })
+          console.log(chartData);
+          this.lineChartData = [{
+            data: chartData,
+            label: "Test"
+          }]
+          console.log(this.lineChartData)
+        }
+      }
+      //{ data: [65, 59, 80, 81, 56, 55, 40], label: 'Series A' },
+    )
   }
 
   public randomize(): void {
@@ -110,11 +128,11 @@ export class GraphsComponent implements OnInit {
 
   // events
   public chartClicked({ event, active }: { event: MouseEvent, active: {}[] }): void {
-    console.log(event, active);
+    //console.log(event, active);
   }
 
   public chartHovered({ event, active }: { event: MouseEvent, active: {}[] }): void {
-    console.log(event, active);
+    //console.log(event, active);
   }
 
   public hideOne(): void {
