@@ -30,13 +30,26 @@ export class StocksService {
         //return res;
       }))
   }
-  getQuote(company) {
-    const query = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${company}&interval=5min&apikey=${AlphaVantage.API_KEY}`
+  getQuote(company, time?) {
+    let timeSeriesConfig;
+    if (time === "intraday") {
+      timeSeriesConfig = "TIME_SERIES_INTRADAY"
+    }
+    else if (time === "daily") {
+      timeSeriesConfig = "TIME_SERIES_DAILY"
+    }
+    else if (time === "weekly") {
+      timeSeriesConfig = "TIME_SERIES_WEEKLY"
+    }
+    else if (time === "monthly") {
+      timeSeriesConfig = "TIME_SERIES_MONTHLY"
+    }
+
+    const query = `https://www.alphavantage.co/query?function=${timeSeriesConfig}&symbol=${company}&interval=5min&apikey=${AlphaVantage.API_KEY}`
     console.log(query);
     this.http.get<Response>(query).subscribe(data => {
       this.stockSub.next(data)
     })
-
   }
 
   getCurrentStock() {

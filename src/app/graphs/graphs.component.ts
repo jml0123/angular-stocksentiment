@@ -1,7 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ChartDataSets, ChartOptions, ChartType } from 'chart.js';
-import { Color, BaseChartDirective, Label } from 'ng2-charts';
+import { Chart, ChartDataSets, ChartOptions, ChartType } from 'chart.js';
+import { Style, BaseChartDirective, Label } from 'ng2-charts';
 import { StocksService } from '../stocks.service'
+import LineOnHover from './customPlugins/lineOnHover';
+import * as ChartSelect from 'chartjs-plugin-select';
+import * as ChartDraggable from 'chartjs-plugin-draggable';
 
 @Component({
   selector: 'app-graphs',
@@ -9,73 +12,88 @@ import { StocksService } from '../stocks.service'
   styleUrls: ['./graphs.component.css']
 })
 export class GraphsComponent implements OnInit {
+  public chartTitle: string;
   public lineChartData: ChartDataSets[] = [];
-  public lineChartLabels: Label[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
+  public lineChartLabels: Label[] = [];
   public lineChartOptions: (ChartOptions & { annotation: any }) = {
+    showLines: true,
     responsive: true,
+    select: {
+      events: ['mousedown', 'mouseup'], // this is important!
+      selectCallback: (startPoint, endPoint) => {
+        console.log("Test")
+      }
+    },
     scales: {
-      // We use this empty structure as a placeholder for dynamic theming.
-      xAxes: [{}],
+      xAxes: [{
+        display: false,
+      }],
       yAxes: [
         {
+          offset: true,
           id: 'y-axis-0',
           position: 'left',
-        },
-        {
-          id: 'y-axis-1',
-          position: 'right',
           gridLines: {
-            color: 'rgba(255,0,0,0.3)',
+            color: '#e6e6e6',
+            tickMarkLength: 0
           },
           ticks: {
-            fontColor: 'red',
-          }
-        }
+            fontColor: 'grey',
+            display: false,
+            mirror: true,
+            callback: function (value, index, values) {
+               return '$' + value;
+            }
+          },
+        },
       ]
     },
+    elements: {
+      point: {
+         radius: 0
+      },
+      line: {
+         tension: 0, // 0 disables bezier curves
+      }
+   },
+   hover: {
+      mode: 'nearest',
+      intersect: true,
+      animationDuration: 0
+   },
+   tooltips: {
+      mode: 'nearest',
+      intersect: true,
+      backgroundColor: 'grey',
+      callbacks: {
+         title: function (tooltipItems, data) {
+            return (tooltipItems[0] || {})['xLabel'];
+         },
+         label: function (tooltipItem, data) {
+            return '$ ' + tooltipItem.yLabel.toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+         },
+         labelColor: function (tooltipItem, chart) {
+            let dataset = chart.config.data.datasets[tooltipItem.datasetIndex];
+            return {
+               backgroundColor: dataset.backgroundColor
+            }
+         }
+      }
+   },
     annotation: {
-      annotations: [
-        {
-          type: 'line',
-          mode: 'vertical',
-          scaleID: 'x-axis-0',
-          value: 'March',
-          borderColor: 'orange',
-          borderWidth: 2,
-          label: {
-            enabled: true,
-            fontColor: 'orange',
-            content: 'LineAnno'
-          }
-        },
-      ],
     },
   };
-  public lineChartColors: Color[] = [
+  public lineChartColors: Style[] = [
     { // grey
-      backgroundColor: 'rgba(148,159,177,0.2)',
-      borderColor: 'rgba(148,159,177,1)',
-      pointBackgroundColor: 'rgba(148,159,177,1)',
-      pointBorderColor: '#fff',
-      pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
+      borderColor: 'rgba(36,124,80,0.92)',
+      pointBackgroundColor: 'rgba(218,208,163,0.9)',
+      pointHoverBackgroundColor: 'rgba(218,208,163,0.9)',
+      pointHoverBorderColor: 'rgb(218,208,163)',
+      lineTension: 0,
+      fill: true,
+      borderWidth: 1.7,
+      backgroundColor: "rgba(146,226,167,0.13)"
     },
-    { // dark grey
-      backgroundColor: 'rgba(77,83,96,0.2)',
-      borderColor: 'rgba(77,83,96,1)',
-      pointBackgroundColor: 'rgba(77,83,96,1)',
-      pointBorderColor: '#fff',
-      pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(77,83,96,1)'
-    },
-    { // red
-      backgroundColor: 'rgba(255,0,0,0.3)',
-      borderColor: 'red',
-      pointBackgroundColor: 'rgba(148,159,177,1)',
-      pointBorderColor: '#fff',
-      pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(148,159,177,0.8)'
-    }
   ];
   public lineChartLegend = true;
   public lineChartType: ChartType = 'line';
@@ -88,73 +106,53 @@ export class GraphsComponent implements OnInit {
    }
 
   ngOnInit(): void {
-    let chartData = [];
+    //Chart.pluginService.register(ChartAnnotation);
+    Chart.pluginService.register(ChartDraggable);
+    Chart.pluginService.register(ChartSelect);
+    Chart.pluginService.register(LineOnHover);
     this.sService.getCurrentStock().subscribe(data =>{
-      const priceData =  data['Time Series (5min)']
+      const timeConfig = Object.keys(data)[1]
+      const metaData = data['Meta Data']
+      const priceData =  data[timeConfig]
+      console.log(data)
       if(!priceData) {
         return
       }
         else {
+          let chartData = [];
+          let chartDateLabels =[]
+          let companySymbol = ''
           const prices = Object.entries(priceData)
-          console.log(prices)
           prices.map(p => {
-            const intPrice = parseFloat(p[1]['1. open'])
-            chartData.push(intPrice)
+            const floatPrice = parseFloat(p[1]['1. open'])
+            const stringDate = p[0]
+            // The API Returns values in reverse chronological order
+            // Instead of pushing to the end of the array, we will prepend using unshift method
+            chartData.unshift(floatPrice)
+            // The API Returns values in reverse chronological order
+            chartDateLabels.unshift(stringDate)
           })
-          console.log(chartData);
           this.lineChartData = [{
             data: chartData,
-            label: "Test"
+            label: metaData['2. Symbol'],
+            pointHoverRadius: 5,
+            pointHitRadius: 1000,
+            steppedLine: false,
           }]
-          console.log(this.lineChartData)
+          this.lineChartLabels = chartDateLabels
+          this.chartTitle = (metaData['2. Symbol'])
         }
       }
       //{ data: [65, 59, 80, 81, 56, 55, 40], label: 'Series A' },
     )
   }
-
-  public randomize(): void {
-    for (let i = 0; i < this.lineChartData.length; i++) {
-      for (let j = 0; j < this.lineChartData[i].data.length; j++) {
-        this.lineChartData[i].data[j] = this.generateNumber(i);
-      }
-    }
-    this.chart.update();
-  }
-
-  private generateNumber(i: number): number {
-    return Math.floor((Math.random() * (i < 2 ? 100 : 1000)) + 1);
-  }
-
   // events
   public chartClicked({ event, active }: { event: MouseEvent, active: {}[] }): void {
     //console.log(event, active);
   }
 
   public chartHovered({ event, active }: { event: MouseEvent, active: {}[] }): void {
-    //console.log(event, active);
+
   }
 
-  public hideOne(): void {
-    const isHidden = this.chart.isDatasetHidden(1);
-    this.chart.hideDataset(1, !isHidden);
-  }
-
-  public pushOne(): void {
-    this.lineChartData.forEach((x, i) => {
-      const num = this.generateNumber(i);
-      const data: number[] = x.data as number[];
-      data.push(num);
-    });
-    this.lineChartLabels.push(`Label ${this.lineChartLabels.length}`);
-  }
-
-  public changeColor(): void {
-    this.lineChartColors[2].borderColor = 'green';
-    this.lineChartColors[2].backgroundColor = `rgba(0, 255, 0, 0.3)`;
-  }
-
-  public changeLabel(): void {
-    this.lineChartLabels[2] = ['1st Line', '2nd Line'];
-  }
 }

@@ -22,6 +22,6 @@ export class SearchComponent implements OnInit {
       return;
     }
     console.log(form.value.ticker);
-    this.sService.getQuote(form.value.ticker);
+    this.sService.getQuote(form.value.ticker, 'intraday');
   }
 }
