@@ -105,8 +105,7 @@ export class GraphsComponent implements OnInit {
     this.sService = sService;
    }
 
-  ngOnInit(): void {
-    //Chart.pluginService.register(ChartAnnotation);
+  ngOnInit() {
     Chart.pluginService.register(ChartDraggable);
     Chart.pluginService.register(ChartSelect);
     Chart.pluginService.register(LineOnHover);
@@ -143,16 +142,12 @@ export class GraphsComponent implements OnInit {
           this.chartTitle = (metaData['2. Symbol'])
         }
       }
-      //{ data: [65, 59, 80, 81, 56, 55, 40], label: 'Series A' },
     )
   }
-  // events
   public chartClicked({ event, active }: { event: MouseEvent, active: {}[] }): void {
-    //console.log(event, active);
   }
 
   public chartHovered({ event, active }: { event: MouseEvent, active: {}[] }): void {
-
   }
 
 }
