@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DashboardModule } from '../dashboard/dashboard.module';
-import { StocksService } from '../stocks.service';
+import { StocksService } from '../services/stocks.service';
 
 @Component({
   selector: 'app-search',

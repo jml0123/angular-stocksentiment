@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Chart, ChartDataSets, ChartOptions, ChartType } from 'chart.js';
 import { Style, BaseChartDirective, Label } from 'ng2-charts';
-import { StocksService } from '../stocks.service'
+import { StocksService } from '../services/stocks.service'
 import LineOnHover from './customPlugins/lineOnHover';
 import * as ChartSelect from 'chartjs-plugin-select';
 import * as ChartDraggable from 'chartjs-plugin-draggable';
